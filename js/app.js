@@ -6,7 +6,15 @@
  */
 
 // TODO: Import the Pet constructor and related constants
-// import { Pet, PetTypes, States } from './pet.js';
+import { Pet, PetTypes, States } from './pet.js';
+
+const petSelector = document.getElementById('pet-selector');
+const petNameInput = document.getElementById('pet-name');
+const createPetButton = document.getElementById('create-pet');
+const feedPetButton = document.getElementById('feed-pet');
+const resetPetButton = document.getElementById('reset-pet');
+const petDisplay = document.getElementById('pet-display');
+const statusDisplay = document.getElementById('status-display');
 
 // Application state variables
 let currentPet = null;
@@ -14,7 +22,7 @@ let updateInterval = null;
 
 /**
  * Initialize the application
- * 
+ *
  * TODO: Implement this function to:
  * - Select and store DOM elements
  * - Populate the pet selector dropdown
@@ -22,39 +30,48 @@ let updateInterval = null;
  * - Show the pet creation UI
  */
 function initApp() {
-  // TODO: Select DOM elements
+  populatePetSelector();
 
-  // TODO: Populate pet selector dropdown
+  setupEventListeners(petSelector, petNameInput, createPetButton, feedPetButton, resetPetButton, petDisplay, statusDisplay);
 
-  // TODO: Set up event listeners
-  
-  // TODO: Show the pet creation UI
+  showCreationUI();
 }
 
 /**
  * Populate the pet selector dropdown
- * 
+ *
  * TODO: Implement this function to:
  * - Add an option for each pet type
  * - Set a default selected type
  */
 function populatePetSelector() {
-  // TODO: Implement pet selector population
+  const petSelector = document.getElementById('pet-selector');
+
+  Object.values(PetTypes).forEach(petType => {
+    const option = document.createElement('option');
+    option.value = petType;
+    option.textContent = petType.charAt(0).toUpperCase() + petType.slice(1);
+    petSelector.appendChild(option);
+  });
+
+  petSelector.value = PetTypes.CAT;
 }
 
 /**
  * Set up event listeners for buttons and interactions
- * 
+ *
  * TODO: Implement this function to:
  * - Add event listeners for the create, feed, and reset buttons
  */
 function setupEventListeners() {
-  // TODO: Implement event listeners setup
+  createPetButton.addEventListener('click', () => createNewPet());
+  feedPetButton.addEventListener('click', feedPet);
+  resetPetButton.addEventListener('click', resetPet);
 }
 
 /**
  * Create a new pet based on form selections
- * 
+ *
  * TODO: Implement this function to:
  * - Get the selected pet type and name
  * - Create a new Pet instance
@@ -62,26 +79,35 @@ function setupEventListeners() {
  * - Start the update cycle
  */
 function createNewPet() {
-  // TODO: Implement pet creation
+  const petType = petSelector.value;
+  const petName = petNameInput.value.trim() || 'Pet';
+
+  currentPet = new Pet(petType, petName);
+
+  hideCreationUI();
+  updatePetDisplay();
+  startUpdateCycle();
 }
 
 /**
  * Hide the pet creation UI and show the pet interaction UI
  */
 function hideCreationUI() {
-  // TODO: Implement UI transition
+  document.getElementById('pet-creation').classList.add('hidden');
+  document.getElementById('pet-interaction').classList.remove('hidden');
 }
 
 /**
  * Show the pet creation UI and hide the pet interaction UI
  */
 function showCreationUI() {
-  // TODO: Implement UI transition
+  document.getElementById('pet-creation').classList.remove('hidden');
+  document.getElementById('pet-interaction').classList.add('hidden');
 }
 
 /**
  * Update the pet display and status elements
- * 
+ *
  * TODO: Implement this function to:
  * - Update the pet's visual representation
  * - Update the status message
@@ -89,46 +115,76 @@ function showCreationUI() {
  * - Update the information display
  */
 function updatePetDisplay() {
-  // TODO: Implement display updates
+  if (currentPet) {
+    petDisplay.textContent = currentPet.appearance;
+    statusDisplay.textContent = currentPet.getStatusMessage();
+    updateMoodBar();
+    updateInfoDisplay();
+  }
 }
 
 /**
  * Update the mood level display bar
- * 
+ *
  * TODO: Implement this function to:
  * - Set the width of the mood bar based on the pet's mood level
  * - Change the color based on the mood level
  */
 function updateMoodBar() {
-  // TODO: Implement mood bar updates
+  const moodBar = document.getElementById('mood-bar');
+  const moodLevel = currentPet.moodLevel;
+
+  moodBar.style.width = `${moodLevel}%`;
+  moodBar.style.height = '40px';
+  moodBar.style.borderRadius = '5px';
+
+  if (moodLevel >= 75) {
+    moodBar.style.backgroundColor = 'green';
+  } else if (moodLevel >= 45) {
+    moodBar.style.backgroundColor = 'yellow';
+  } else {
+    moodBar.style.backgroundColor = 'red';
+  }
 }
 
 /**
  * Update the information display panel
- * 
+ *
  * TODO: Implement this function to:
  * - Show the pet's name, type, state, etc.
  * - Display the mood level bar
  * - Show timestamps for creation and last feeding
  */
 function updateInfoDisplay() {
-  // TODO: Implement info display updates
+  const infoDisplay = document.getElementById('info-display');
+  infoDisplay.innerHTML = `
+    <p><strong>Name:</strong> ${currentPet.name}</p>
+    <p><strong>Type:</strong> ${currentPet.type}</p>
+    <p><strong>State:</strong> ${currentPet.state}</p>
+    <p><strong>Mood Level:</strong> ${currentPet.moodLevel}</p>
+    <p><strong>Created:</strong> ${currentPet.created.toLocaleString()}</p>
+    <p><strong>Last Fed:</strong> ${currentPet.lastFed.toLocaleString()}</p>
+  `;
 }
 
 /**
  * Feed the current pet
- * 
+ *
  * TODO: Implement this function to:
  * - Call the pet's feed method
  * - Update the display with the new state
  */
 function feedPet() {
-  // TODO: Implement feeding interaction
+  if (currentPet) {
+    const message = currentPet.feed();
+    updatePetDisplay();
+    alert(message);
+  }
 }
 
 /**
  * Reset the pet simulator
- * 
+ *
  * TODO: Implement this function to:
  * - Clear the update interval
  * - Reset the current pet
@@ -136,12 +192,16 @@ function feedPet() {
  * - Show the creation UI
  */
 function resetPet() {
-  // TODO: Implement reset functionality
+  clearInterval(updateInterval);
+  currentPet = null;
+  document.getElementById('pet-display').textContent = '';
+  document.getElementById('status-display').textContent = 'Create a pet to get started!';
+  showCreationUI();
 }
 
 /**
  * Start the regular update cycle
- * 
+ *
  * TODO: Implement this function to:
  * - Clear any existing update interval
  * - Set up a new interval that:
@@ -149,7 +209,16 @@ function resetPet() {
  *   - Updates the display
  */
 function startUpdateCycle() {
-  // TODO: Implement update cycle
+  if (updateInterval) {
+    clearInterval(updateInterval);
+  }
+
+  updateInterval = setInterval(() => {
+    if (currentPet) {
+      currentPet.updateState();
+      updatePetDisplay();
+    }
+  }, 1000);
 }
 
 // Initialize the app when the DOM is loaded
